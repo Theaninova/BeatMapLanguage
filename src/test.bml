@@ -1,0 +1,15 @@
+#fun test () {
+    Cube (1.0, 3, 5,)
+    Cube (1.1, 2, 3,)
+    Cube (1.4, 5, 3,)
+}
+
+#fun test_two () {
+    Cube (1.2, 6, 6,)
+}
+
+#main () {
+    test_two ()
+    Cube (1.2, 3, 6,)
+    !24.6:false:4 {test ()}
+}

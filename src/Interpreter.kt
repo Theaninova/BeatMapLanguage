@@ -1,4 +1,4 @@
-class Interpreter {
+class Interpreter(val code: String) {
     class BslFunction(val name: String, val pos: Int)
 
     var error = false
@@ -7,11 +7,13 @@ class Interpreter {
 
     val key_fun = '#'
     val key_comment = '?'
+    val key_pattern = '!'
+    val key_pattern_seperator = ':'
     val key_opening_bracket = '{'
     val key_closing_bracket = '}'
     val key_section_marker = '"'
 
-    val fun_typ_pattern = "pattern"
+    val fun_typ_pattern = "fun"
     val fun_typ_main = "main"
 
     val fun_stat_place_cube = "Cube"
@@ -21,8 +23,10 @@ class Interpreter {
 
     val args_seperator = ','
 
-    var code = "#pattern test (runs, arg,) {Cube (1.0, 3, 5,)} #main () {test (1, \"Hello there\",) Cube (1.2, 3, 6,)}"
     var pos = 0
+
+    var currentOffset = 0.0
+    var inverted = false
 
     fun placeCube(timestamp: Double, type: Int, value: Int) {
         System.out.println("Cube placed: " + timestamp + " " + type + " " + value)
@@ -80,26 +84,42 @@ class Interpreter {
         return argsList.toTypedArray()
     }
 
-    fun executeFun(my_pos: Int) {
+    fun executeFun(my_pos: Int, agrsNames: Array<String>, args: Array<String>) {
         val old_pos = pos
         pos = my_pos
 
-        gotoNext(fun_opening_bracket)
-        //This time we just need the names for interpretation purposes
-        val agrsNames = popArgs()
-
         gotoNext(key_opening_bracket)
-
+        jumpSpaces()
         while (code[pos] != key_closing_bracket) {
-            jumpSpaces()
-
             if (code[pos] == key_comment) {
                 gotoNext(key_comment)
+            } else if (code[pos] == key_pattern) {
+                pos++
+                val timestamp = popNextWord(key_pattern_seperator)
+                val t_inverted = popNextWord(key_pattern_seperator)
+                val runs = popNextWord(' ').toInt() - 1
+
+                val oldOffset = currentOffset
+                currentOffset += timestamp.toDouble()
+
+                val oldInverted = inverted
+                inverted = t_inverted.toBoolean()
+
+                for (i in 0..runs) {
+                    executeFun(pos, arrayOf("p_timestamp", "p_inverted", "p_total_runs", "p_current_run_index"), arrayOf(timestamp, t_inverted, runs.toString(), i.toString()))
+                }
+
+                gotoNext(key_closing_bracket)
+
+                currentOffset = oldOffset
+                inverted = oldInverted
             } else {
                 val fun_call = popNextWord(' ')
                 gotoNext(fun_opening_bracket)
                 callFunction(fun_call, popArgs())
             }
+
+            jumpSpaces()
         }
 
         pos = old_pos
@@ -113,7 +133,14 @@ class Interpreter {
 
             for (this_fun in functions) {
                 if (this_fun.name == name) {
-                    executeFun(this_fun.pos)
+                    val old_pos = pos
+                    pos = this_fun.pos
+
+                    val argsNames = popArgs()
+
+                    pos = old_pos
+
+                    executeFun(this_fun.pos, argsNames, args)
                     break
                 }
             }
@@ -132,7 +159,8 @@ class Interpreter {
                     functions.add(BslFunction(functionName, pos))
                     gotoNext(key_closing_bracket)
                 } else if (fun_typ == fun_typ_main) {
-                    executeFun(pos)
+                    //We don't need any args for the main function
+                    executeFun(pos, Array(0, { i -> ""}), Array(0, { i -> ""}))
                     return
                 }
             } else if (code[pos] == key_comment) {
