@@ -3,6 +3,8 @@
     Cube (1.5, 2, 3,)
     Cube (2.0, 5, 3,)
 
+    test_two ()
+
     <- 2.0
 }
 
@@ -16,6 +18,8 @@
 
     _x = ?test ()
 
+
+    §Simple Pattern Creation§
     !24.6:false:_x {
         _e = [ ?test () + 1.0 ]
 

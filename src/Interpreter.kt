@@ -173,6 +173,7 @@ class Interpreter(val code: String) {
         jumpSpaces()
         while (code[pos] != key_closing_bracket) {
             if (code[pos] == key_comment) {
+                pos++
                 gotoNext(key_comment)
             } else if (code[pos] == key_pattern) {
                 pos++
