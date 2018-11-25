@@ -19,6 +19,9 @@ class Interpreter(val code: String) {
     val key_return_one = '<'
     val key_return_two = '-'
 
+    val key_assign_from_fun_one = 't'
+    val key_assign_from_fun_two = 'o'
+
     val fun_typ_pattern = "fun"
     val fun_typ_main = "main"
 
@@ -47,10 +50,17 @@ class Interpreter(val code: String) {
     }
 
     /*
-       Returns the current word at the cursor.
+       Returns the current word at the cursor or the Value of the variable
      */
     fun popNextWord(escapeChar: Char): String {
         val builder = StringBuilder()
+
+        var variable = false
+
+        if (code[pos] == key_variable) {
+            pos++
+            variable = true
+        }
 
         while (code[pos] != escapeChar) {
             if (code[pos] == key_section_marker) {
@@ -59,14 +69,18 @@ class Interpreter(val code: String) {
                     pos++
                 }
                 pos++
-            }else {
+            } else {
                 builder.append(code[pos])
                 pos++
             }
         }
         pos++
 
-        return builder.toString()
+        if (variable) {
+            return getVarVal(builder.toString())
+        } else {
+            return builder.toString()
+        }
     }
 
     /*
@@ -92,6 +106,25 @@ class Interpreter(val code: String) {
         }
         pos++
         return argsList.toTypedArray()
+    }
+
+    fun addOrAssignVar(name: String, value: String) {
+        for (variable in variables) {
+            if (name.equals(variable.name)) {
+                variable.value = value
+            }
+        }
+
+        variables.add(BslVariable(name, value))
+    }
+
+    fun getVarVal(name: String): String {
+        for (variable in variables) {
+            if (name.equals(variable.name))
+                return variable.value
+        }
+
+        return "VARIABLE " + name + " NOT FOUND"
     }
 
     fun executeFun(my_pos: Int, agrsNames: Array<String>, args: Array<String>): String {
@@ -127,15 +160,24 @@ class Interpreter(val code: String) {
                 inverted = oldInverted
             } else if (code[pos] == key_return_one && code[pos + 1] == key_return_two) {
                 pos += 2
+                jumpSpaces()
                 val out = popNextWord(' ')
                 pos = old_pos
                 return out
             } else if (code[pos] == key_variable) {
-                TODO()
+                pos++
+                val varName = popNextWord(' ')
             } else {
                 val fun_call = popNextWord(' ')
                 gotoNext(fun_opening_bracket)
-                callFunction(fun_call, popArgs())
+                val returnVal = callFunction(fun_call, popArgs())
+                jumpSpaces()
+                if (code[pos] == key_assign_from_fun_one && code[pos + 1] == key_assign_from_fun_two) {
+                    pos += 2
+                    jumpSpaces()
+                    pos++
+                    addOrAssignVar(popNextWord(' '), returnVal)
+                }
             }
 
             jumpSpaces()
@@ -146,7 +188,7 @@ class Interpreter(val code: String) {
         return "NO_RETURN"
     }
 
-    fun callFunction(name: String, args: Array<String>) {
+    fun callFunction(name: String, args: Array<String>): String {
         if (name == fun_stat_place_cube) {
             placeCube(args[0].toDouble(), args[1].toInt(), args[2].toInt())
         } else {
@@ -161,11 +203,12 @@ class Interpreter(val code: String) {
 
                     pos = old_pos
 
-                    executeFun(this_fun.pos, argsNames, args)
-                    break
+                    return executeFun(this_fun.pos, argsNames, args)
                 }
             }
         }
+
+        return "NO_FUNCTION_FOUND"
     }
 
     fun interpret() {
