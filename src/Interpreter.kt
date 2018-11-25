@@ -1,3 +1,5 @@
+import kotlin.math.roundToInt
+
 class Interpreter(val code: String) {
     class BslFunction(val name: String, val pos: Int)
     class BslVariable(val name: String, var value: String)
@@ -8,7 +10,7 @@ class Interpreter(val code: String) {
     val variables = ArrayList<BslVariable>()
 
     val key_fun = '#'
-    val key_comment = '?'
+    val key_comment = '§'
     val key_pattern = '!'
     val key_pattern_seperator = ':'
     val key_opening_bracket = '{'
@@ -17,6 +19,8 @@ class Interpreter(val code: String) {
     val key_math_closing = ']'
     val key_section_marker = '"'
     val key_variable = '_'
+    val key_assignment = '='
+    val key_ask_return = '?'
 
     val key_return_one = '<'
     val key_return_two = '-'
@@ -54,7 +58,7 @@ class Interpreter(val code: String) {
     /*
        Returns the current word at the cursor or the Value of the variable
      */
-    fun popNextWord(escapeChar: Char): String {
+    fun popNext(escapeChar: Char): String {
         val builder = StringBuilder()
 
         var variable = false
@@ -65,6 +69,12 @@ class Interpreter(val code: String) {
         } else if (code[pos] == key_math_opening) {
             pos++
             return evalMathExpression()
+        } else if (code[pos] == key_ask_return) {
+            //Function call with return value
+            pos++
+            val fun_call = popNext(' ')
+            gotoNext(fun_opening_bracket)
+            return callFunction(fun_call, popArgs())
         }
 
         while (code[pos] != escapeChar) {
@@ -107,7 +117,7 @@ class Interpreter(val code: String) {
         val argsList = ArrayList<String>()
         while (code[pos] != fun_closing_bracket) {
             jumpSpaces()
-            argsList.add(popNextWord(args_seperator))
+            argsList.add(popNext(args_seperator))
         }
         pos++
         return argsList.toTypedArray()
@@ -134,9 +144,11 @@ class Interpreter(val code: String) {
 
     fun evalMathExpression(): String {
         jumpSpaces()
-        val varOne = popNextWord(' ')
-        val operation = popNextWord(' ')
-        val varTwo = popNextWord(' ')
+        val varOne = popNext(' ')
+        jumpSpaces()
+        val operation = popNext(' ')
+        jumpSpaces()
+        val varTwo = popNext(' ')
 
         gotoNext(key_math_closing)
 
@@ -164,9 +176,9 @@ class Interpreter(val code: String) {
                 gotoNext(key_comment)
             } else if (code[pos] == key_pattern) {
                 pos++
-                val timestamp = popNextWord(key_pattern_seperator)
-                val t_inverted = popNextWord(key_pattern_seperator)
-                val runs = popNextWord(' ').toInt() - 1
+                val timestamp = popNext(key_pattern_seperator)
+                val t_inverted = popNext(key_pattern_seperator)
+                val runs = popNext(' ').toDouble().roundToInt() - 1
 
                 val oldOffset = currentOffset
                 currentOffset += timestamp.toDouble()
@@ -187,32 +199,22 @@ class Interpreter(val code: String) {
             } else if (code[pos] == key_return_one && code[pos + 1] == key_return_two) {
                 pos += 2
                 jumpSpaces()
-                val out = popNextWord(' ')
+                val out = popNext(' ')
                 pos = old_pos
                 return out
             } else if (code[pos] == key_variable) {
                 pos++
-                val varName = popNextWord(' ')
-            } else if (code[pos] == key_math_opening) {
-                pos++
-                val result = evalMathExpression()
+                val varName = popNext(' ')
                 jumpSpaces()
-                if (code[pos] == key_assign_from_fun_one && code[pos + 1] == key_assign_from_fun_two) {
-                    jumpSpaces()
+                if (code[pos] == key_assignment) {
                     pos++
-                    addOrAssignVar(popNextWord(' '), result)
+                    jumpSpaces()
+                    addOrAssignVar(varName, popNext(' '))
                 }
             } else {
-                val fun_call = popNextWord(' ')
+                val fun_call = popNext(' ')
                 gotoNext(fun_opening_bracket)
-                val returnVal = callFunction(fun_call, popArgs())
-                jumpSpaces()
-                if (code[pos] == key_assign_from_fun_one && code[pos + 1] == key_assign_from_fun_two) {
-                    pos += 2
-                    jumpSpaces()
-                    pos++
-                    addOrAssignVar(popNextWord(' '), returnVal)
-                }
+                callFunction(fun_call, popArgs())
             }
 
             jumpSpaces()
@@ -250,11 +252,11 @@ class Interpreter(val code: String) {
         while (pos < code.length) {
             if (code[pos] == key_fun) {
                 pos++
-                val fun_typ = popNextWord(' ')
+                val fun_typ = popNext(' ')
                 jumpSpaces()
 
                 if (fun_typ.equals(fun_typ_pattern)) {
-                    val functionName = popNextWord(' ')
+                    val functionName = popNext(' ')
                     functions.add(BslFunction(functionName, pos))
                     gotoNext(key_closing_bracket)
                 } else if (fun_typ == fun_typ_main) {

@@ -14,12 +14,11 @@
     test_two ()
     Cube (1.2, 3, 6,)
 
+    _x = ?test ()
 
-    !24.6:false:4 {
-        test () to _e
+    !24.6:false:_x {
+        _e = [ ?test () + 1.0 ]
 
-        [ _e + 1.0 ] to _e
-
-        <- [ _e + 2.0 ]
+        <- _e
     }
 }
