@@ -1,9 +1,11 @@
 class Interpreter(val code: String) {
     class BslFunction(val name: String, val pos: Int)
+    class BslVariable(val name: String, var value: String)
 
     var error = false
 
     val functions = ArrayList<BslFunction>()
+    val variables = ArrayList<BslVariable>()
 
     val key_fun = '#'
     val key_comment = '?'
@@ -12,6 +14,10 @@ class Interpreter(val code: String) {
     val key_opening_bracket = '{'
     val key_closing_bracket = '}'
     val key_section_marker = '"'
+    val key_variable = '_'
+
+    val key_return_one = '<'
+    val key_return_two = '-'
 
     val fun_typ_pattern = "fun"
     val fun_typ_main = "main"
@@ -29,7 +35,11 @@ class Interpreter(val code: String) {
     var inverted = false
 
     fun placeCube(timestamp: Double, type: Int, value: Int) {
-        System.out.println("Cube placed: " + timestamp + " " + type + " " + value)
+        val my_timestamp = currentOffset + timestamp
+
+        //TODO: Invert
+
+        System.out.println("Cube placed: " + my_timestamp + " " + type + " " + value)
     }
 
     fun placeBomb(timestamp: Double, value: Int) {
@@ -84,7 +94,7 @@ class Interpreter(val code: String) {
         return argsList.toTypedArray()
     }
 
-    fun executeFun(my_pos: Int, agrsNames: Array<String>, args: Array<String>) {
+    fun executeFun(my_pos: Int, agrsNames: Array<String>, args: Array<String>): String {
         val old_pos = pos
         pos = my_pos
 
@@ -106,13 +116,22 @@ class Interpreter(val code: String) {
                 inverted = t_inverted.toBoolean()
 
                 for (i in 0..runs) {
-                    executeFun(pos, arrayOf("p_timestamp", "p_inverted", "p_total_runs", "p_current_run_index"), arrayOf(timestamp, t_inverted, runs.toString(), i.toString()))
+                    val len = executeFun(pos, arrayOf("p_timestamp", "p_inverted", "p_total_runs", "p_current_run_index"), arrayOf(timestamp, t_inverted, runs.toString(), i.toString()))
+
+                    currentOffset += len.toDouble()
                 }
 
                 gotoNext(key_closing_bracket)
 
                 currentOffset = oldOffset
                 inverted = oldInverted
+            } else if (code[pos] == key_return_one && code[pos + 1] == key_return_two) {
+                pos += 2
+                val out = popNextWord(' ')
+                pos = old_pos
+                return out
+            } else if (code[pos] == key_variable) {
+                TODO()
             } else {
                 val fun_call = popNextWord(' ')
                 gotoNext(fun_opening_bracket)
@@ -123,6 +142,8 @@ class Interpreter(val code: String) {
         }
 
         pos = old_pos
+
+        return "NO_RETURN"
     }
 
     fun callFunction(name: String, args: Array<String>) {
