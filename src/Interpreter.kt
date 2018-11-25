@@ -13,6 +13,8 @@ class Interpreter(val code: String) {
     val key_pattern_seperator = ':'
     val key_opening_bracket = '{'
     val key_closing_bracket = '}'
+    val key_math_opening = '['
+    val key_math_closing = ']'
     val key_section_marker = '"'
     val key_variable = '_'
 
@@ -60,6 +62,9 @@ class Interpreter(val code: String) {
         if (code[pos] == key_variable) {
             pos++
             variable = true
+        } else if (code[pos] == key_math_opening) {
+            pos++
+            return evalMathExpression()
         }
 
         while (code[pos] != escapeChar) {
@@ -127,6 +132,27 @@ class Interpreter(val code: String) {
         return "VARIABLE " + name + " NOT FOUND"
     }
 
+    fun evalMathExpression(): String {
+        jumpSpaces()
+        val varOne = popNextWord(' ')
+        val operation = popNextWord(' ')
+        val varTwo = popNextWord(' ')
+
+        gotoNext(key_math_closing)
+
+        if (operation.equals("+")) {
+            return (varOne.toDouble() + varTwo.toDouble()).toString()
+        } else if (operation.equals("-")) {
+            return (varOne.toDouble() - varTwo.toDouble()).toString()
+        } else if (operation.equals("*")) {
+            return (varOne.toDouble() * varTwo.toDouble()).toString()
+        } else if (operation.equals("/")) {
+            return (varOne.toDouble() / varTwo.toDouble()).toString()
+        } else {
+            return "INVALID_MATH_OPERATION"
+        }
+    }
+
     fun executeFun(my_pos: Int, agrsNames: Array<String>, args: Array<String>): String {
         val old_pos = pos
         pos = my_pos
@@ -167,6 +193,15 @@ class Interpreter(val code: String) {
             } else if (code[pos] == key_variable) {
                 pos++
                 val varName = popNextWord(' ')
+            } else if (code[pos] == key_math_opening) {
+                pos++
+                val result = evalMathExpression()
+                jumpSpaces()
+                if (code[pos] == key_assign_from_fun_one && code[pos + 1] == key_assign_from_fun_two) {
+                    jumpSpaces()
+                    pos++
+                    addOrAssignVar(popNextWord(' '), result)
+                }
             } else {
                 val fun_call = popNextWord(' ')
                 gotoNext(fun_opening_bracket)
