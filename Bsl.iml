@@ -8,5 +8,16 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="library" name="lwjgl-opengl" level="project" />
+    <orderEntry type="library" name="lwjgl-opengl-natives-linux" level="project" />
+    <orderEntry type="library" name="lwjgl-glfw" level="project" />
+    <orderEntry type="library" name="lwjgl-glfw-natives-linux" level="project" />
+    <orderEntry type="library" name="lwjgl-jemalloc" level="project" />
+    <orderEntry type="library" name="lwjgl-jemalloc-natives-linux" level="project" />
+    <orderEntry type="library" name="lwjgl-jawt" level="project" />
+    <orderEntry type="library" name="lwjgl-rpmalloc" level="project" />
+    <orderEntry type="library" name="lwjgl-rpmalloc-natives-linux" level="project" />
+    <orderEntry type="library" name="lwjgl" level="project" />
+    <orderEntry type="library" name="lwjgl-natives-linux" level="project" />
   </component>
 </module>

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="lwjgl-natives-linux">
+    <CLASSES>
+      <root url="jar:///home/wulkanat/Downloads/lwjgl/lwjgl-natives-linux.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

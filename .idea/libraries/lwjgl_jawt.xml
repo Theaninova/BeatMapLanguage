@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="lwjgl-jawt">
+    <CLASSES>
+      <root url="jar:///home/wulkanat/Downloads/lwjgl-3.2.0/lwjgl-jawt/lwjgl-jawt.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

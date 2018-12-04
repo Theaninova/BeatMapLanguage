@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="lwjgl-opengl">
+    <CLASSES>
+      <root url="jar:///home/wulkanat/Downloads/lwjgl-3.2.0/lwjgl-opengl/lwjgl-opengl.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

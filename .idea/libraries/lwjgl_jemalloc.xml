@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="lwjgl-jemalloc">
+    <CLASSES>
+      <root url="jar:///home/wulkanat/Downloads/lwjgl-3.2.0/lwjgl-jemalloc/lwjgl-jemalloc.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
